@@ -1,5 +1,6 @@
 # Controls-PID
-Self-Driving Car Engineer Nanodegree Program
+> author: s.aparajith@live.com  
+> date : 19.06.2021  
 
 ---
 
@@ -52,6 +53,7 @@ Please (do your best to) stick to [Google's C++ style guide](https://google.gith
 
 [pid]: ./doc/pid.png "piddiag"
 [pideqn]: ./doc/eqn.svg "piddiageq"
+[pidtest]: ./doc/test.gif "test"
 
 ## Design
 
@@ -92,3 +94,9 @@ If the integrator keeps on adding errors when the car is stuck/ takes time to re
 
 ### Speed Control
 the steering wheel angle is used to compute the desired speed. this is done by proportionally increasing or decreasing the car desired speed using the angle and the maximum angle at which the vehicle should brake heavily to restore control which is 25 degrees. refer to `main.h` for the empirical computation. 
+
+
+## Results
+The vehicle was tested to be within the track and the speed control system provided additional support in terms of turning around tight corners.  
+
+![sTest][pidtest]
