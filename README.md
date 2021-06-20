@@ -3,6 +3,8 @@
 > date : 19.06.2021  
 
 ---
+Builds for AMD64 - linux - ubuntu 20.04LTS  
+![build](https://travis-ci.com/Aparajith-S/PID-Controller.svg?branch=main)  
 
 ## Dependencies
 
