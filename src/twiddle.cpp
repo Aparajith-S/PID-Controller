@@ -1,6 +1,7 @@
 #include"twiddle.h"
 #include<iostream>
 #include<cmath>
+#include<cstdlib>
 namespace twiddle{
 void Twiddle::cyclic(PID & io_pid)
 {
