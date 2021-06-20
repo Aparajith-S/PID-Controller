@@ -1,4 +1,4 @@
-# CarND-Controls-PID
+# Controls-PID
 Self-Driving Car Engineer Nanodegree Program
 
 ---
@@ -50,49 +50,45 @@ using the following settings:
 
 Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
 
-## Project Instructions and Rubric
+[pid]: ./doc/pid.png "piddiag"
+[pideqn]: ./doc/eqn.svg "piddiageq"
 
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
+## Design
 
-More information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/e8235395-22dd-4b87-88e0-d108c5e5bbf4/concepts/6a4d8d42-6a04-4aa6-b284-1697c0fd6562)
-for instructions and the project rubric.
+### Controller
+The PID controller is a very general purpose implementation of a controller which is used to implement controllers without knowing much of the plant dynamics.  
+![p][pid]
+The above diagram shows the control system containing a typical PID controller. The three components being `proportional`, `integral` and `derivative` controls. `Proportional` control does the work of acting on the error, whereas, `integral` accounts for plant non linearity and tries to minimize steady state error. `Derivative` applies control that requires quick maneuvers which helps in reducing the rise time and also compensating for overshoots.  
 
-## Hints!
+The project uses two PID controllers one for controlling the `throttle` and `brake` and one for controlling the `steering`.  
 
-* You don't have to follow this directory structure, but if you do, your work
-  will span all of the .cpp files here. Keep an eye out for TODOs.
+here is the mathematical expression showing the various elements.
+![p][pideqn]  
 
-## Call for IDE Profiles Pull Requests
+As an initial setting the following parameters were used:  
 
-Help your fellow students!
+1. Steering controller
 
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to we ensure
-that students don't feel pressured to use one IDE or another.
+    |Kp|Ki | Kd|
+    |:---:|:---:|:---:|
+    |0.135| 0.0008|1.0|  
+2. Throttle valve controller  
+    |Kp|Ki | Kd|
+    |:---:|:---:|:---:|
+    |0.6|0.0|1.0|  
 
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
+### Twiddle Algorithm
+Twiddle algorithm is a method of finding a better Kp Ki and Kd when the PID initial tuning values are not suitable to effectively complete the track. each iteration when the cross track error gets out of hand the twiddle algorithm is called which increments or decrements the gains of the controller in order to reduce the mean squared error which is computed by squaring the cross track error. This is actually the `reference - actual value` term that is squared.    
 
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
+### Integrator design
+While developing for an embedded platform it is important to have an integrator that is limited and also works effectively. 
 
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
+#### moving window integrator
+It is of limited size and the implementation here uses `std::deque`, a circular buffer to add at the back and remove elements at the front effectively creating a moving / sliding window. using `std::accumulate` the integral is calculated.
+see `integrator.h` for more details.  
 
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
+#### Integral windup 
+If the integrator keeps on adding errors when the car is stuck/ takes time to return to the center, the integrator error would be very high by the time the car comes back to the center of the lane causing overshoots or worse loss of control. A limited integrator prevents `integral windup` in some rare cases where the aforementioned can happen.  
 
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
+### Speed Control
+the steering wheel angle is used to compute the desired speed. this is done by proportionally increasing or decreasing the car desired speed using the angle and the maximum angle at which the vehicle should brake heavily to restore control which is 25 degrees. refer to `main.h` for the empirical computation. 
